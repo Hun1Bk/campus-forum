@@ -8,3 +8,4 @@ $env:MAIL_HOST = 'smtp.qq.com'
 $env:MAIL_PORT = '465'
 $env:MAIL_USERNAME = 'your-mail@example.com'
 $env:MAIL_PASSWORD = 'your-smtp-authorization-code'
+#该文件已废弃不建议使用，仅做兼容性保留（确信
