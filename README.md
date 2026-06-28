@@ -21,6 +21,7 @@
 campus-forum/
   backend/          Spring Boot 后端服务
   space/            Vue 3 前端项目
+  first-run.ps1     首次运行配置向导
   start-all.ps1     一键启动前后端
   stop-all.ps1      一键关闭前后端
   README.md         项目总说明
@@ -65,7 +66,15 @@ campus-forum/
 
 3. 安装 Node.js 和 npm。
 
-4. 首次运行前安装前端依赖：
+4. 首次运行建议先执行配置向导：
+
+   ```powershell
+   .\first-run.ps1
+   ```
+
+   脚本会检查 Java、Node.js、npm、MySQL 命令，按提示生成本机 `mail.local.ps1`，并提示数据库初始化、前端依赖安装和启动方式。`mail.local.ps1` 已加入忽略列表，不要提交到仓库。
+
+5. 如果没有通过配置向导安装依赖，首次运行前手动安装前端依赖：
 
    ```powershell
    cd space
