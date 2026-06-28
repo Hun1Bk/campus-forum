@@ -8,5 +8,6 @@ mail.local.ps1
 *.local.ps1
 .env
 .env.*
+!.env.example
 .DS_Store
 Thumbs.db
