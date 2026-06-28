@@ -22,6 +22,7 @@ campus-forum/
   backend/          Spring Boot 后端服务
   space/            Vue 3 前端项目
   first-run.ps1     首次运行配置向导
+  local.config.example.ps1  本地统一配置示例
   start-all.ps1     一键启动前后端
   stop-all.ps1      一键关闭前后端
   README.md         项目总说明
@@ -72,7 +73,7 @@ campus-forum/
    .\first-run.ps1
    ```
 
-   脚本会检查 Java、Node.js、npm、MySQL 命令，按提示生成本机 `mail.local.ps1`，并提示数据库初始化、前端依赖安装和启动方式。`mail.local.ps1` 已加入忽略列表，不要提交到仓库。
+   脚本会检查 Java、Node.js、npm、MySQL 命令，按提示生成本机 `local.config.ps1`，并提示数据库初始化、前端依赖安装和启动方式。`local.config.ps1` 已加入忽略列表，不要提交到仓库。
 
 5. 如果没有通过配置向导安装依赖，首次运行前手动安装前端依赖：
 
@@ -104,11 +105,13 @@ $env:MAIL_USERNAME="你的发件邮箱"
 $env:MAIL_PASSWORD="邮箱 SMTP 授权码"
 ```
 
-也可以复制示例文件为本地脚本 `mail.local.ps1`，里面可同时配置数据库、管理员密码、JWT 密钥和 SMTP。`start-all.ps1` 会自动加载它。`mail.local.ps1` 已加入忽略列表，不要提交：
+也可以复制示例文件为本地统一配置 `local.config.ps1`，里面可同时配置前后端端口、数据库、管理员密码、JWT 密钥和 SMTP。`start-all.ps1` 会自动加载它。`local.config.ps1` 已加入忽略列表，不要提交：
 
 ```powershell
-Copy-Item .\mail.local.example.ps1 .\mail.local.ps1
+Copy-Item .\local.config.example.ps1 .\local.config.ps1
 ```
+
+旧版 `mail.local.ps1` 仍可被启动脚本兼容读取，但推荐后续统一使用 `local.config.ps1`。修改端口后需要重新执行 `.\start-all.ps1`。
 
 未配置或配置错误时，验证码接口会返回邮件发送失败。
 
@@ -122,9 +125,10 @@ Copy-Item .\mail.local.example.ps1 .\mail.local.ps1
 
 启动行为：
 
-- 后端使用 `backend/run-backend.ps1` 启动，端口 `3000`。
+- 后端使用 `backend/run-backend.ps1` 启动，默认端口 `3000`，可在 `local.config.ps1` 中通过 `BACKEND_PORT` 修改。
 - 后端控制台会显示出来，便于查看运行日志。
-- 前端使用 `space/run-space.ps1` 启动，端口 `8081`。
+- 前端使用 `space/run-space.ps1` 启动，默认端口 `8081`，可在 `local.config.ps1` 中通过 `FRONTEND_PORT` 修改。
+- 前端会根据 `BACKEND_PORT` 自动设置后端接口地址。
 - 前端日志会写入 `logs/`。
 
 关闭服务：
@@ -133,7 +137,7 @@ Copy-Item .\mail.local.example.ps1 .\mail.local.ps1
 .\stop-all.ps1
 ```
 
-该脚本会查找并停止监听 `3000` 和 `8081` 端口的进程。
+该脚本会读取 `local.config.ps1`，查找并停止当前配置的前后端端口进程；配置缺失时回退 `3000` 和 `8081`。
 
 ## 单独启动后端
 
@@ -161,6 +165,8 @@ cd space
 npm run serve -- --host 0.0.0.0 --port 8081
 ```
 
+使用脚本启动时，前端端口和后端接口地址会自动读取 `local.config.ps1`。
+
 ## 构建验证
 
 后端构建：
@@ -181,7 +187,7 @@ npm run build
 
 ## 常见问题
 
-### 3000 或 8081 端口被占用
+### 前后端端口被占用
 
 先执行：
 
@@ -189,7 +195,7 @@ npm run build
 .\stop-all.ps1
 ```
 
-如果仍被占用，使用 `netstat -ano | Select-String ":3000"` 或 `":8081"` 查看进程。
+如果仍被占用，可以在 `local.config.ps1` 中修改 `BACKEND_PORT` 或 `FRONTEND_PORT`，再重新执行 `.\start-all.ps1`。也可以使用 `netstat -ano | Select-String ":端口号"` 查看进程。
 
 ### 后端出现 Whitelabel Error Page 或 403
 
@@ -219,7 +225,7 @@ npm run build
 backend/uploads/
 ```
 
-后端通过 `/uploads/**` 对外提供访问。请确认后端正在运行，且前端访问的是 `http://localhost:3000`。
+后端通过 `/uploads/**` 对外提供访问。请确认后端正在运行，且前端访问的后端地址与 `local.config.ps1` 中的 `BACKEND_PORT` 一致。
 
 ### 管理员登录失败
 

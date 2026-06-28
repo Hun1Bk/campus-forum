@@ -1,6 +1,39 @@
 $ErrorActionPreference = 'Continue'
 
-$ports = @(3000, 8081)
+$root = $PSScriptRoot
+$localConfigScript = Join-Path $root 'local.config.ps1'
+$legacyConfigScript = Join-Path $root 'mail.local.ps1'
+
+function Import-ForumConfig {
+    if (Test-Path -LiteralPath $localConfigScript) {
+        . $localConfigScript
+        return
+    }
+
+    if (Test-Path -LiteralPath $legacyConfigScript) {
+        . $legacyConfigScript
+    }
+}
+
+function Get-ConfiguredPort {
+    param(
+        [string]$Name,
+        [int]$Default
+    )
+
+    $raw = [Environment]::GetEnvironmentVariable($Name, 'Process')
+    $port = 0
+    if ([int]::TryParse($raw, [ref]$port) -and $port -ge 1 -and $port -le 65535) {
+        return $port
+    }
+    return $Default
+}
+
+Import-ForumConfig
+$ports = @(
+    (Get-ConfiguredPort -Name 'BACKEND_PORT' -Default 3000),
+    (Get-ConfiguredPort -Name 'FRONTEND_PORT' -Default 8081)
+) | Select-Object -Unique
 
 function Get-ListeningPids {
     param([int]$Port)

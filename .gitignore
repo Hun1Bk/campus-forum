@@ -3,6 +3,7 @@ backend/uploads/
 backend/target/
 space/dist/
 space/node_modules/
+local.config.ps1
 mail.local.ps1
 *.local.ps1
 .env

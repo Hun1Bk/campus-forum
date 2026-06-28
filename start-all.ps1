@@ -6,13 +6,41 @@ $frontendDir = Join-Path $root 'space'
 $backendScript = Join-Path $backendDir 'run-backend.ps1'
 $frontendScript = Join-Path $frontendDir 'run-space.ps1'
 $logDir = Join-Path $root 'logs'
-$mailLocalScript = Join-Path $root 'mail.local.ps1'
+$localConfigScript = Join-Path $root 'local.config.ps1'
+$legacyConfigScript = Join-Path $root 'mail.local.ps1'
 
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 
-if (Test-Path -LiteralPath $mailLocalScript) {
-    . $mailLocalScript
+function Import-ForumConfig {
+    if (Test-Path -LiteralPath $localConfigScript) {
+        . $localConfigScript
+        Write-Host "Loaded config: $localConfigScript"
+        return
+    }
+
+    if (Test-Path -LiteralPath $legacyConfigScript) {
+        . $legacyConfigScript
+        Write-Host "Loaded legacy config: $legacyConfigScript"
+    }
 }
+
+function Get-ConfiguredPort {
+    param(
+        [string]$Name,
+        [int]$Default
+    )
+
+    $raw = [Environment]::GetEnvironmentVariable($Name, 'Process')
+    $port = 0
+    if ([int]::TryParse($raw, [ref]$port) -and $port -ge 1 -and $port -le 65535) {
+        return $port
+    }
+    return $Default
+}
+
+Import-ForumConfig
+$backendPort = Get-ConfiguredPort -Name 'BACKEND_PORT' -Default 3000
+$frontendPort = Get-ConfiguredPort -Name 'FRONTEND_PORT' -Default 8081
 
 function Get-ListeningPids {
     param([int]$Port)
@@ -68,7 +96,7 @@ function Start-ServiceScript {
 
 Start-ServiceScript `
     -Name 'Backend' `
-    -Port 3000 `
+    -Port $backendPort `
     -ScriptPath $backendScript `
     -WorkingDirectory $backendDir `
     -OutLog (Join-Path $logDir 'backend.out.log') `
@@ -77,7 +105,7 @@ Start-ServiceScript `
 
 Start-ServiceScript `
     -Name 'Frontend' `
-    -Port 8081 `
+    -Port $frontendPort `
     -ScriptPath $frontendScript `
     -WorkingDirectory $frontendDir `
     -OutLog (Join-Path $logDir 'frontend.out.log') `
@@ -86,20 +114,20 @@ Start-ServiceScript `
 $deadline = (Get-Date).AddSeconds(60)
 do {
     Start-Sleep -Seconds 2
-    $backendReady = @(Get-ListeningPids -Port 3000).Count -gt 0
-    $frontendReady = @(Get-ListeningPids -Port 8081).Count -gt 0
+    $backendReady = @(Get-ListeningPids -Port $backendPort).Count -gt 0
+    $frontendReady = @(Get-ListeningPids -Port $frontendPort).Count -gt 0
 } until (($backendReady -and $frontendReady) -or (Get-Date) -ge $deadline)
 
 Write-Host ''
 if ($backendReady) {
-    Write-Host 'Backend:  http://localhost:3000'
+    Write-Host "Backend:  http://localhost:$backendPort"
 } else {
-    Write-Host 'Backend did not start within 60 seconds. Check logs/backend.err.log'
+    Write-Host "Backend did not start within 60 seconds. Check logs/backend.err.log"
 }
 
 if ($frontendReady) {
-    Write-Host 'Frontend: http://localhost:8081'
-    Write-Host 'Admin:    http://localhost:8081/#/admin'
+    Write-Host "Frontend: http://localhost:$frontendPort"
+    Write-Host "Admin:    http://localhost:$frontendPort/#/admin"
 } else {
-    Write-Host 'Frontend did not start within 60 seconds. Check logs/frontend.err.log'
+    Write-Host "Frontend did not start within 60 seconds. Check logs/frontend.err.log"
 }
