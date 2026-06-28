@@ -95,7 +95,7 @@ src/main/resources/application.properties
 关键配置：
 
 ```properties
-server.port=3000
+server.port=${BACKEND_PORT:3000}
 spring.datasource.username=${DB_USERNAME:root}
 spring.datasource.password=${DB_PASSWORD:}
 spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/kob?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8}
@@ -165,7 +165,7 @@ $env:JWT_SECRET="请替换为足够长的随机字符串"
 - 如果本机设置了 `JAVA_HOME`，自动加入 Java 路径。
 - 使用 `target/backend-0.0.1-SNAPSHOT.jar` 启动后端。
 - 如果 jar 不存在，则回退到 Maven Spring Boot 启动。
-- 启动时读取 `DB_USERNAME`、`DB_PASSWORD`、`DB_URL` 等环境变量。
+- 启动时读取 `DB_USERNAME`、`DB_PASSWORD`、`DB_URL`、`BACKEND_PORT` 等环境变量。
 
 手动 jar 启动：
 

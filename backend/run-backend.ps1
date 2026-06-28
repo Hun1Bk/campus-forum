@@ -17,6 +17,9 @@ if ($env:DB_USERNAME) {
 if ($env:DB_URL) {
     $runArgs += "--spring.datasource.url=$env:DB_URL"
 }
+if ($env:BACKEND_PORT) {
+    $runArgs += "--server.port=$env:BACKEND_PORT"
+}
 
 $jar = Join-Path $PSScriptRoot 'target\backend-0.0.1-SNAPSHOT.jar'
 if (Test-Path -LiteralPath $jar) {
