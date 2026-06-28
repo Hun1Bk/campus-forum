@@ -6,21 +6,56 @@ $frontendDir = Join-Path $root 'space'
 $backendScript = Join-Path $backendDir 'run-backend.ps1'
 $frontendScript = Join-Path $frontendDir 'run-space.ps1'
 $logDir = Join-Path $root 'logs'
-$localConfigScript = Join-Path $root 'local.config.ps1'
-$legacyConfigScript = Join-Path $root 'mail.local.ps1'
+$envConfigScript = Join-Path $root '.env'
+$legacyLocalConfigScript = Join-Path $root 'local.config.ps1'
+$legacyMailConfigScript = Join-Path $root 'mail.local.ps1'
 
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 
+function Import-DotEnv {
+    param([string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $false
+    }
+
+    Get-Content -LiteralPath $Path -Encoding UTF8 | ForEach-Object {
+        $line = $_.Trim()
+        if (-not $line -or $line.StartsWith('#')) {
+            return
+        }
+
+        $index = $line.IndexOf('=')
+        if ($index -le 0) {
+            return
+        }
+
+        $name = $line.Substring(0, $index).Trim()
+        $value = $line.Substring($index + 1).Trim()
+        if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+        [Environment]::SetEnvironmentVariable($name, $value, 'Process')
+    }
+
+    return $true
+}
+
 function Import-ForumConfig {
-    if (Test-Path -LiteralPath $localConfigScript) {
-        . $localConfigScript
-        Write-Host "Loaded config: $localConfigScript"
+    if (Import-DotEnv -Path $envConfigScript) {
+        Write-Host "Loaded config: $envConfigScript"
         return
     }
 
-    if (Test-Path -LiteralPath $legacyConfigScript) {
-        . $legacyConfigScript
-        Write-Host "Loaded legacy config: $legacyConfigScript"
+    if (Test-Path -LiteralPath $legacyLocalConfigScript) {
+        . $legacyLocalConfigScript
+        Write-Host "Loaded legacy config: $legacyLocalConfigScript"
+        return
+    }
+
+    if (Test-Path -LiteralPath $legacyMailConfigScript) {
+        . $legacyMailConfigScript
+        Write-Host "Loaded legacy config: $legacyMailConfigScript"
     }
 }
 
