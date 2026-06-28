@@ -38,7 +38,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers(HttpMethod.GET, "/", "/health", "/error", "/uploads/**").permitAll()
-                .antMatchers("/user/account/token/", "/user/account/register/","/user/account/email/code/","/user/post/get/",
+                .antMatchers("/user/account/token/", "/user/account/register/","/user/account/email/code/",
+                        "/user/account/email-login/code/","/user/account/email-login/",
+                        "/user/account/password/reset/code/","/user/account/password/reset/","/user/post/get/",
                         "/user/post/getComment/","/user/post/hot/","/user/post/pinned/","/user/post/view/",
                         "/user/post/detail/","/user/post/user/","/user/profile/info/",
                         "/user/section/list/","/user/section/hot/","/user/agree/get/","/user/agree/count/").permitAll()

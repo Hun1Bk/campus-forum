@@ -189,7 +189,7 @@ target/backend-0.0.1-SNAPSHOT.jar
 
 ```powershell
 cd ..
-.\stop-all.ps1
+.\start-all.ps1 stop
 ```
 
 ## 接口分组概览

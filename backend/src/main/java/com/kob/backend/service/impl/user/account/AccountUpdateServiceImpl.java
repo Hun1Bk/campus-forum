@@ -51,7 +51,7 @@ public class AccountUpdateServiceImpl implements AccountUpdateService {
             map.put("error_message", "当前账号未绑定邮箱");
             return map;
         }
-        return emailCodeService.sendCode(email);
+        return emailCodeService.sendCode(email, "ACCOUNT_UPDATE");
     }
 
     @Override
@@ -97,7 +97,7 @@ public class AccountUpdateServiceImpl implements AccountUpdateService {
             map.put("error_message", "当前账号未绑定邮箱");
             return map;
         }
-        if (!emailCodeService.verifyAndConsume(user.getEmail(), emailCode)) {
+        if (!emailCodeService.verifyAndConsume(user.getEmail(), emailCode, "ACCOUNT_UPDATE")) {
             map.put("error_message", "邮箱验证码错误或已过期");
             return map;
         }
