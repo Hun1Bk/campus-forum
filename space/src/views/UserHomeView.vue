@@ -55,8 +55,8 @@ import { ElMessage } from "element-plus";
 import $ from "jquery";
 import router from "@/router/index";
 import { openRouteInNewWindow } from "@/utils/openRoute";
+import { API_BASE } from "@/config/api";
 
-const API_BASE = "http://localhost:3000";
 
 export default {
   name: "UserHomeView",

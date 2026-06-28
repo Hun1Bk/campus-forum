@@ -66,9 +66,9 @@ import { ArrowDown, Bell } from "@element-plus/icons-vue";
 import $ from "jquery";
 import router from "@/router/index";
 import { openRouteInNewWindow } from "@/utils/openRoute";
+import { API_BASE } from "@/config/api";
 
 const MANAGER_ROLES = ["ADMIN", "SUPER_ADMIN", "OWNER"];
-const API_BASE = "http://localhost:3000";
 
 export default {
   name: "NavBarView",
@@ -111,7 +111,7 @@ export default {
       }
 
       $.ajax({
-        url: "http://localhost:3000/user/notification/unread-count/",
+        url: `${API_BASE}/user/notification/unread-count/`,
         type: "get",
         headers: {
           Authorization: "Bearer " + store.state.user.token,

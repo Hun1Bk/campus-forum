@@ -1,4 +1,5 @@
 import $ from 'jquery'
+import { API_BASE } from "@/config/api";
 
 const roleTitle = (role) => {
     if (role === 'OWNER') return '站长';
@@ -59,7 +60,7 @@ const ModuleUser = {
     actions: {
         login(context, data) {
             $.ajax({
-                url: 'http://localhost:3000/user/account/token/',
+                url: `${API_BASE}/user/account/token/`,
                 type: 'post',
                 data: {
                     account: data.account,
@@ -78,7 +79,7 @@ const ModuleUser = {
         },
         getInfo(context, data) {
             $.ajax({
-                url: "http://localhost:3000/user/account/info/",
+                url: `${API_BASE}/user/account/info/`,
                 type: "get",
                 headers: {
                     Authorization: "Bearer " + context.state.token,
@@ -99,7 +100,7 @@ const ModuleUser = {
         },
         updateProfile(context, data) {
             $.ajax({
-                url: "http://localhost:3000/user/account/update/",
+                url: `${API_BASE}/user/account/update/`,
                 type: "post",
                 headers: {
                     Authorization: "Bearer " + context.state.token,

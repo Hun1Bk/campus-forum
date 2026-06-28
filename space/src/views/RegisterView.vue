@@ -43,8 +43,8 @@ import { onBeforeUnmount, ref } from "vue"
 import $ from 'jquery'
 import router from "@/router/index"
 import { ElMessage } from "element-plus";
+import { API_BASE } from "@/config/api";
 
-const API_BASE = "http://localhost:3000";
 const EMAIL_PATTERN = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/;
 const ACCOUNT_PATTERN = /^[A-Za-z0-9_]{4,30}$/;
 

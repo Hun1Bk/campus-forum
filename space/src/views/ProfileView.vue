@@ -143,8 +143,8 @@ import { ElMessage } from "element-plus";
 import $ from "jquery";
 import router from "@/router/index";
 import { openRouteInNewWindow } from "@/utils/openRoute";
+import { API_BASE } from "@/config/api";
 
-const API_BASE = "http://localhost:3000";
 const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const ACCOUNT_PATTERN = /^[A-Za-z0-9_]{4,30}$/;

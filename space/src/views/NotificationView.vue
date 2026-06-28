@@ -44,8 +44,8 @@ import { ElMessage } from "element-plus";
 import $ from "jquery";
 import router from "@/router/index";
 import { openRouteInNewWindow } from "@/utils/openRoute";
+import { API_BASE } from "@/config/api";
 
-const API_BASE = "http://localhost:3000";
 
 export default {
   name: "NotificationView",
@@ -73,7 +73,7 @@ export default {
     const loadNotifications = () => {
       if (!ensureLogin()) return;
       $.ajax({
-        url: "http://localhost:3000/user/notification/list/",
+        url: `${API_BASE}/user/notification/list/`,
         type: "get",
         headers: authHeaders(),
         success(resp) {
@@ -88,7 +88,7 @@ export default {
     const readOne = (notification) => {
       if (notification.isRead !== "false") return;
       $.ajax({
-        url: "http://localhost:3000/user/notification/read/",
+        url: `${API_BASE}/user/notification/read/`,
         type: "post",
         headers: authHeaders(),
         data: {
@@ -117,7 +117,7 @@ export default {
     const readAll = () => {
       if (!ensureLogin()) return;
       $.ajax({
-        url: "http://localhost:3000/user/notification/readAll/",
+        url: `${API_BASE}/user/notification/readAll/`,
         type: "post",
         headers: authHeaders(),
         success(resp) {

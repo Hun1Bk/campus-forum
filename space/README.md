@@ -120,8 +120,9 @@ dist/
 
 ## 开发约定
 
-- 默认后端地址写在页面脚本中：`http://localhost:3000`。
-- 默认前端端口为 `8081`。
+- 默认后端地址为 `http://localhost:3000`，使用 `VUE_APP_API_BASE_URL` 覆盖。
+- 默认前端端口为 `8081`，使用项目根目录 `local.config.ps1` 中的 `FRONTEND_PORT` 覆盖。
+- 使用 `run-space.ps1` 启动时，会根据 `BACKEND_PORT` 自动设置 `VUE_APP_API_BASE_URL`。
 - 登录 token 存储在浏览器 `localStorage`。
 - 路由使用 hash 模式，例如 `http://localhost:8081/#/space`。
 - 帖子详情、用户主页、个人中心和管理后台入口会新开窗口。

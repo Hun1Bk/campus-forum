@@ -368,8 +368,8 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import $ from "jquery";
 import router from "@/router/index";
 import { openRouteInNewWindow } from "@/utils/openRoute";
+import { API_BASE } from "@/config/api";
 
-const API_BASE = "http://localhost:3000";
 const MAX_IMAGE_COUNT = 9;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
