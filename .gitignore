@@ -1,0 +1,11 @@
+logs/
+backend/uploads/
+backend/target/
+space/dist/
+space/node_modules/
+mail.local.ps1
+*.local.ps1
+.env
+.env.*
+.DS_Store
+Thumbs.db
