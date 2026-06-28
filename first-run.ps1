@@ -11,9 +11,10 @@ try {
 }
 
 $root = $PSScriptRoot
-$localConfig = Join-Path $root 'local.config.ps1'
-$legacyConfig = Join-Path $root 'mail.local.ps1'
-$exampleConfig = Join-Path $root 'local.config.example.ps1'
+$envConfig = Join-Path $root '.env'
+$legacyLocalConfig = Join-Path $root 'local.config.ps1'
+$legacyMailConfig = Join-Path $root 'mail.local.ps1'
+$exampleConfig = Join-Path $root '.env.example'
 $schemaFile = Join-Path $root 'backend\sql\forum_schema.sql'
 $frontendDir = Join-Path $root 'space'
 $startScript = Join-Path $root 'start-all.ps1'
@@ -118,10 +119,13 @@ function Read-YesNo {
     return $answer.Trim().ToLowerInvariant().StartsWith('y')
 }
 
-function ConvertTo-PowerShellSingleQuoted {
+function ConvertTo-DotEnvValue {
     param([string]$Value)
 
-    return "'" + ($Value -replace "'", "''") + "'"
+    if ($null -eq $Value) {
+        return ''
+    }
+    return ($Value -replace "`r", '' -replace "`n", '')
 }
 
 function New-RandomSecret {
@@ -136,7 +140,7 @@ function New-RandomSecret {
 }
 
 Write-Host '校园论坛首次运行配置向导'
-Write-Host '这个脚本只生成本机配置和给出启动提示，不会把密码、授权码写入 Git。'
+Write-Host '这个脚本会生成 .env 本地配置，不会把密码、授权码写入 Git。'
 
 Write-Section '1. 环境检查'
 $javaOk = Test-LocalCommand 'java' '请安装 JDK，并配置 JAVA_HOME 或 PATH。'
@@ -145,16 +149,16 @@ $npmOk = Test-LocalCommand 'npm.cmd' '请安装 Node.js 自带的 npm。'
 $mysqlOk = Test-LocalCommand 'mysql' '请安装 MySQL，并把 mysql 命令加入 PATH；也可以用 MySQL Workbench 手动导入 SQL。'
 
 Write-Section '2. 本地配置'
-if ((Test-Path -LiteralPath $localConfig) -and (-not $Overwrite)) {
-    Write-Host "已存在统一配置：$localConfig"
+if ((Test-Path -LiteralPath $envConfig) -and (-not $Overwrite)) {
+    Write-Host "已存在统一配置：$envConfig"
     Write-Host '如需重新生成，请执行：.\first-run.ps1 -Overwrite'
 } else {
-    if ((Test-Path -LiteralPath $localConfig) -and $Overwrite) {
-        Write-Host '将重新生成 local.config.ps1。'
-    } elseif (Test-Path -LiteralPath $legacyConfig) {
-        Write-Host '检测到旧配置 mail.local.ps1。启动脚本仍兼容读取它，但新配置会写入 local.config.ps1。'
+    if ((Test-Path -LiteralPath $envConfig) -and $Overwrite) {
+        Write-Host '将重新生成 .env。'
+    } elseif ((Test-Path -LiteralPath $legacyLocalConfig) -or (Test-Path -LiteralPath $legacyMailConfig)) {
+        Write-Host '检测到旧 ps1 配置。启动脚本仍兼容读取它，但新配置会写入 .env。'
     } elseif (Test-Path -LiteralPath $exampleConfig) {
-        Write-Host "将基于示例配置生成：$localConfig"
+        Write-Host "将基于示例配置生成：$envConfig"
     }
 
     $backendPort = Read-PortWithDefault '后端端口' 3000
@@ -186,25 +190,25 @@ if ((Test-Path -LiteralPath $localConfig) -and (-not $Overwrite)) {
     }
 
     $lines = New-Object System.Collections.Generic.List[string]
-    $lines.Add('$env:BACKEND_PORT = ' + (ConvertTo-PowerShellSingleQuoted ([string]$backendPort))) | Out-Null
-    $lines.Add('$env:FRONTEND_PORT = ' + (ConvertTo-PowerShellSingleQuoted ([string]$frontendPort))) | Out-Null
+    $lines.Add('BACKEND_PORT=' + (ConvertTo-DotEnvValue ([string]$backendPort))) | Out-Null
+    $lines.Add('FRONTEND_PORT=' + (ConvertTo-DotEnvValue ([string]$frontendPort))) | Out-Null
     $lines.Add('') | Out-Null
-    $lines.Add('$env:DB_USERNAME = ' + (ConvertTo-PowerShellSingleQuoted $dbUser)) | Out-Null
-    $lines.Add('$env:DB_PASSWORD = ' + (ConvertTo-PowerShellSingleQuoted $dbPassword)) | Out-Null
-    $lines.Add('$env:DB_URL = ' + (ConvertTo-PowerShellSingleQuoted $dbUrl)) | Out-Null
-    $lines.Add('$env:ADMIN_PASSWORD = ' + (ConvertTo-PowerShellSingleQuoted $adminPassword)) | Out-Null
-    $lines.Add('$env:JWT_SECRET = ' + (ConvertTo-PowerShellSingleQuoted $jwtSecret)) | Out-Null
+    $lines.Add('DB_USERNAME=' + (ConvertTo-DotEnvValue $dbUser)) | Out-Null
+    $lines.Add('DB_PASSWORD=' + (ConvertTo-DotEnvValue $dbPassword)) | Out-Null
+    $lines.Add('DB_URL=' + (ConvertTo-DotEnvValue $dbUrl)) | Out-Null
+    $lines.Add('ADMIN_PASSWORD=' + (ConvertTo-DotEnvValue $adminPassword)) | Out-Null
+    $lines.Add('JWT_SECRET=' + (ConvertTo-DotEnvValue $jwtSecret)) | Out-Null
     $lines.Add('') | Out-Null
-    $lines.Add('$env:MAIL_HOST = ' + (ConvertTo-PowerShellSingleQuoted $mailHost)) | Out-Null
-    $lines.Add('$env:MAIL_PORT = ' + (ConvertTo-PowerShellSingleQuoted $mailPort)) | Out-Null
-    $lines.Add('$env:MAIL_USERNAME = ' + (ConvertTo-PowerShellSingleQuoted $mailUsername)) | Out-Null
-    $lines.Add('$env:MAIL_PASSWORD = ' + (ConvertTo-PowerShellSingleQuoted $mailPassword)) | Out-Null
+    $lines.Add('MAIL_HOST=' + (ConvertTo-DotEnvValue $mailHost)) | Out-Null
+    $lines.Add('MAIL_PORT=' + (ConvertTo-DotEnvValue $mailPort)) | Out-Null
+    $lines.Add('MAIL_USERNAME=' + (ConvertTo-DotEnvValue $mailUsername)) | Out-Null
+    $lines.Add('MAIL_PASSWORD=' + (ConvertTo-DotEnvValue $mailPassword)) | Out-Null
 
     $configText = [string]::Join([Environment]::NewLine, $lines.ToArray()) + [Environment]::NewLine
     $utf8Bom = New-Object System.Text.UTF8Encoding -ArgumentList $true
-    [System.IO.File]::WriteAllText($localConfig, $configText, $utf8Bom)
-    Write-Host "已生成统一配置：$localConfig"
-    Write-Host '以后需要修改端口时，直接编辑 local.config.ps1 中的 BACKEND_PORT 和 FRONTEND_PORT。'
+    [System.IO.File]::WriteAllText($envConfig, $configText, $utf8Bom)
+    Write-Host "已生成统一配置：$envConfig"
+    Write-Host '以后需要修改端口时，直接编辑 .env 中的 BACKEND_PORT 和 FRONTEND_PORT。'
 }
 
 Write-Section '3. 数据库准备'
@@ -238,7 +242,7 @@ Write-Section '5. 启动项目'
 Write-Host '配置完成后，在项目根目录执行：'
 Write-Host '.\start-all.ps1'
 Write-Host ''
-Write-Host '访问地址默认如下；若修改 local.config.ps1，请以脚本输出为准：'
+Write-Host '访问地址默认如下；若修改 .env，请以脚本输出为准：'
 Write-Host '前端：http://localhost:8081'
 Write-Host '后端：http://localhost:3000'
 Write-Host '后台：http://localhost:8081/#/admin'
