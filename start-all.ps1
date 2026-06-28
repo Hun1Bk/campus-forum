@@ -310,8 +310,7 @@ function Start-Monitor {
         [int]$BackendPid,
         [int]$FrontendPid
     )
-    $commandTemplate = 'try { Wait-Process -Id {0} -ErrorAction SilentlyContinue } catch { }; Start-Sleep -Seconds 1; try { Stop-Process -Id {1} -Force -ErrorAction SilentlyContinue } catch { }'
-    $command = $commandTemplate -f $BackendPid, $FrontendPid
+    $command = 'try { Wait-Process -Id ' + $BackendPid + ' -ErrorAction SilentlyContinue } catch { }; Start-Sleep -Seconds 1; try { Stop-Process -Id ' + $FrontendPid + ' -Force -ErrorAction SilentlyContinue } catch { }'
     $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
     Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile", "-ExecutionPolicy", "Bypass", "-EncodedCommand", $encoded) -WindowStyle Hidden | Out-Null
 }
