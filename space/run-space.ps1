@@ -1,5 +1,37 @@
 ﻿$ErrorActionPreference = 'Stop'
 
+$root = Split-Path -Parent $PSScriptRoot
+$envConfig = Join-Path $root '.env'
+
+function Import-DotEnv {
+    param([string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return
+    }
+
+    Get-Content -LiteralPath $Path -Encoding UTF8 | ForEach-Object {
+        $line = $_.Trim()
+        if (-not $line -or $line.StartsWith('#')) {
+            return
+        }
+
+        $index = $line.IndexOf('=')
+        if ($index -le 0) {
+            return
+        }
+
+        $name = $line.Substring(0, $index).Trim()
+        $value = $line.Substring($index + 1).Trim()
+        if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+        [Environment]::SetEnvironmentVariable($name, $value, 'Process')
+    }
+}
+
+Import-DotEnv -Path $envConfig
+
 $backendPort = 3000
 $frontendPort = 8081
 $parsedPort = 0
