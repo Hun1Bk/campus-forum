@@ -59,18 +59,43 @@ const ModuleUser = {
     },
     actions: {
         login(context, data) {
+            const loginName = data.account || '';
+            const isEmail = loginName.includes('@');
             $.ajax({
                 url: `${API_BASE}/user/account/token/`,
                 type: 'post',
                 data: {
-                    account: data.account,
-                    username: data.account,
+                    account: isEmail ? '' : loginName,
+                    username: isEmail ? '' : loginName,
+                    email: isEmail ? loginName : '',
                     password: data.password,
                 },
                 success(resp) {
-                    localStorage.setItem("jwt_token", resp.token);
-                    context.commit("updateToken", resp.token);
-                    data.success();
+                    if (resp.error_message === "success") {
+                        localStorage.setItem("jwt_token", resp.token);
+                        context.commit("updateToken", resp.token);
+                    }
+                    data.success(resp);
+                },
+                error() {
+                    data.error();
+                }
+            })
+        },
+        emailLogin(context, data) {
+            $.ajax({
+                url: `${API_BASE}/user/account/email-login/`,
+                type: 'post',
+                data: {
+                    email: data.email,
+                    emailCode: data.emailCode,
+                },
+                success(resp) {
+                    if (resp.error_message === "success") {
+                        localStorage.setItem("jwt_token", resp.token);
+                        context.commit("updateToken", resp.token);
+                    }
+                    data.success(resp);
                 },
                 error() {
                     data.error();

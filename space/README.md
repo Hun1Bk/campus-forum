@@ -164,7 +164,7 @@ dist/
 项目默认使用 `8081`。可以先回到项目根目录执行：
 
 ```powershell
-.\stop-all.ps1
+.\start-all.ps1 stop
 ```
 
 或手动查找端口：
