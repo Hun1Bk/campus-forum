@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 
 $backendPort = 3000
 $frontendPort = 8081
@@ -17,5 +17,8 @@ $env:NODE_OPTIONS = '--use-system-ca'
 if (-not $env:VUE_APP_API_BASE_URL) {
     $env:VUE_APP_API_BASE_URL = "http://localhost:$backendPort"
 }
+
+Write-Host '前端正在启动...'
+Write-Host "当前端口：$frontendPort"
 
 npm.cmd run serve -- --host 0.0.0.0 --port $frontendPort
