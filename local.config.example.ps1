@@ -11,3 +11,4 @@ $env:MAIL_HOST = 'smtp.qq.com'
 $env:MAIL_PORT = '465'
 $env:MAIL_USERNAME = 'your-mail@example.com'
 $env:MAIL_PASSWORD = 'your-smtp-authorization-code'
+#建议使用该配置模版
