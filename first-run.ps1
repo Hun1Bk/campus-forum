@@ -1,8 +1,12 @@
+﻿param(
+    [switch]$Overwrite
+)
+
 $ErrorActionPreference = 'Stop'
 
 try {
-    [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
-    $OutputEncoding = [System.Text.UTF8Encoding]::new()
+    [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding
+    $OutputEncoding = New-Object System.Text.UTF8Encoding
 } catch {
 }
 
@@ -84,7 +88,10 @@ function Read-YesNo {
         [bool]$DefaultYes = $false
     )
 
-    $suffix = if ($DefaultYes) { 'Y/n' } else { 'y/N' }
+    $suffix = 'y/N'
+    if ($DefaultYes) {
+        $suffix = 'Y/n'
+    }
     $answer = Read-Host "$Prompt ($suffix)"
 
     if ([string]::IsNullOrWhiteSpace($answer)) {
@@ -151,33 +158,35 @@ if ((Test-Path -LiteralPath $localConfig) -and (-not $Overwrite)) {
         Write-Host '已跳过 SMTP。未配置时，注册邮箱验证码接口会提示邮件服务未配置或发送失败。'
     }
 
-    $lines = @(
-        '$env:DB_USERNAME = ' + (ConvertTo-PowerShellSingleQuoted $dbUser),
-        '$env:DB_PASSWORD = ' + (ConvertTo-PowerShellSingleQuoted $dbPassword),
-        '$env:DB_URL = ' + (ConvertTo-PowerShellSingleQuoted $dbUrl),
-        '$env:ADMIN_PASSWORD = ' + (ConvertTo-PowerShellSingleQuoted $adminPassword),
-        '$env:JWT_SECRET = ' + (ConvertTo-PowerShellSingleQuoted $jwtSecret),
-        '',
-        '$env:MAIL_HOST = ' + (ConvertTo-PowerShellSingleQuoted $mailHost),
-        '$env:MAIL_PORT = ' + (ConvertTo-PowerShellSingleQuoted $mailPort),
-        '$env:MAIL_USERNAME = ' + (ConvertTo-PowerShellSingleQuoted $mailUsername),
-        '$env:MAIL_PASSWORD = ' + (ConvertTo-PowerShellSingleQuoted $mailPassword)
-    )
+    $lines = New-Object System.Collections.Generic.List[string]
+    $lines.Add('$env:DB_USERNAME = ' + (ConvertTo-PowerShellSingleQuoted $dbUser)) | Out-Null
+    $lines.Add('$env:DB_PASSWORD = ' + (ConvertTo-PowerShellSingleQuoted $dbPassword)) | Out-Null
+    $lines.Add('$env:DB_URL = ' + (ConvertTo-PowerShellSingleQuoted $dbUrl)) | Out-Null
+    $lines.Add('$env:ADMIN_PASSWORD = ' + (ConvertTo-PowerShellSingleQuoted $adminPassword)) | Out-Null
+    $lines.Add('$env:JWT_SECRET = ' + (ConvertTo-PowerShellSingleQuoted $jwtSecret)) | Out-Null
+    $lines.Add('') | Out-Null
+    $lines.Add('$env:MAIL_HOST = ' + (ConvertTo-PowerShellSingleQuoted $mailHost)) | Out-Null
+    $lines.Add('$env:MAIL_PORT = ' + (ConvertTo-PowerShellSingleQuoted $mailPort)) | Out-Null
+    $lines.Add('$env:MAIL_USERNAME = ' + (ConvertTo-PowerShellSingleQuoted $mailUsername)) | Out-Null
+    $lines.Add('$env:MAIL_PASSWORD = ' + (ConvertTo-PowerShellSingleQuoted $mailPassword)) | Out-Null
 
-    Set-Content -LiteralPath $localConfig -Value $lines -Encoding UTF8
+    $configText = [string]::Join([Environment]::NewLine, $lines.ToArray()) + [Environment]::NewLine
+    $utf8Bom = New-Object System.Text.UTF8Encoding -ArgumentList $true
+    [System.IO.File]::WriteAllText($localConfig, $configText, $utf8Bom)
     Write-Host "已生成本地配置：$localConfig"
 }
 
 Write-Section '3. 数据库准备'
 Write-Host '请确认 MySQL 已启动，并导入初始化 SQL：'
-Write-Host "mysql -u你的用户名 -p < `"$schemaFile`""
+Write-Host ('mysql -u你的用户名 -p < "' + $schemaFile + '"')
 Write-Host 'SQL 会创建 kob 数据库和论坛所需表。后端启动时还会自动补充缺失字段。'
 if (-not $mysqlOk) {
     Write-Host '当前未检测到 mysql 命令，可以用 MySQL Workbench、Navicat 等工具打开并执行该 SQL 文件。'
 }
 
 Write-Section '4. 前端依赖'
-if (Test-Path -LiteralPath (Join-Path $frontendDir 'node_modules')) {
+$nodeModulesDir = Join-Path $frontendDir 'node_modules'
+if (Test-Path -LiteralPath $nodeModulesDir) {
     Write-Host '已检测到 space/node_modules，通常无需重复安装。'
 } else {
     Write-Host '首次运行前需要安装前端依赖：'
@@ -206,6 +215,9 @@ Write-Host ''
 Write-Host '关闭项目：'
 Write-Host '.\stop-all.ps1'
 
-if ((Test-Path -LiteralPath $startScript) -and (Read-YesNo '是否现在启动项目')) {
+$canStart = Test-Path -LiteralPath $startScript
+if ($canStart -and (Read-YesNo '是否现在启动项目')) {
     & $startScript
 }
+
+
