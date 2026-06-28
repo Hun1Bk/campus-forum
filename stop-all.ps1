@@ -1,17 +1,51 @@
 $ErrorActionPreference = 'Continue'
 
 $root = $PSScriptRoot
-$localConfigScript = Join-Path $root 'local.config.ps1'
-$legacyConfigScript = Join-Path $root 'mail.local.ps1'
+$envConfigScript = Join-Path $root '.env'
+$legacyLocalConfigScript = Join-Path $root 'local.config.ps1'
+$legacyMailConfigScript = Join-Path $root 'mail.local.ps1'
+
+function Import-DotEnv {
+    param([string]$Path)
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return $false
+    }
+
+    Get-Content -LiteralPath $Path -Encoding UTF8 | ForEach-Object {
+        $line = $_.Trim()
+        if (-not $line -or $line.StartsWith('#')) {
+            return
+        }
+
+        $index = $line.IndexOf('=')
+        if ($index -le 0) {
+            return
+        }
+
+        $name = $line.Substring(0, $index).Trim()
+        $value = $line.Substring($index + 1).Trim()
+        if (($value.StartsWith('"') -and $value.EndsWith('"')) -or ($value.StartsWith("'") -and $value.EndsWith("'"))) {
+            $value = $value.Substring(1, $value.Length - 2)
+        }
+        [Environment]::SetEnvironmentVariable($name, $value, 'Process')
+    }
+
+    return $true
+}
 
 function Import-ForumConfig {
-    if (Test-Path -LiteralPath $localConfigScript) {
-        . $localConfigScript
+    if (Import-DotEnv -Path $envConfigScript) {
         return
     }
 
-    if (Test-Path -LiteralPath $legacyConfigScript) {
-        . $legacyConfigScript
+    if (Test-Path -LiteralPath $legacyLocalConfigScript) {
+        . $legacyLocalConfigScript
+        return
+    }
+
+    if (Test-Path -LiteralPath $legacyMailConfigScript) {
+        . $legacyMailConfigScript
     }
 }
 
